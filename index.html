@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      
+      function parseDateString(dateString) {
+        const [year, month, day] = dateString.split('-');
+        return new Date(year, month - 1, day);
+      }
+
+      function drawChart(json) {
+        var dataArr = [['Date', 'Số bước chân']];
+        for(var item of json.data){
+          dataArr.push([parseDateString(item.date), item.steps]);
+        }
+        var data = google.visualization.arrayToDataTable(dataArr);
+
+        var options = {
+          title: 'Số bước chân hàng ngày',
+          legend: { position: 'bottom' },
+          hAxis: { title: 'Ngày' },
+          vAxis: { title: 'Số bước chân' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+        chart.draw(data, options);
+      }
+
+      function ve_bieu_do(){
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+              var json = JSON.parse(xhr.responseText);
+              drawChart(json);
+            } else {
+              console.error('Error fetching data from API:', xhr.status);
+            }
+          }
+        };
+
+        var method = "GET";
+        var url = "/api/steps"; // URL của API để lấy dữ liệu số bước chân
+
+        xhr.open(method, url, true);
+        xhr.send();
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="ve_bieu_do()">Tải dữ liệu và vẽ biểu đồ</button>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
+</html>
